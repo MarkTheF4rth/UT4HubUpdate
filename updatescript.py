@@ -32,12 +32,13 @@ __maintainer__ = "MII#0255"
 #TODO THESE MUST BE CHANGED TO THE SUITABLE VALUES
 PRIVCODE = "abcef"
 SERVER_TOKEN = "abcef"
-ALLOWED_RULES = "1,2,3,4" # set to "" for default server rulesets
 HIDE_DEFAULTS = False
 REFERENCE_FILENAME = 'references.txt'
-PORT = 7777
 
+#Advanced Options
 PURGE_OLD = True # WARNING: set to false if you do not want unlisted paks deleted
+ALLOWED_RULES = "" # set for custom rulesets
+PORT = 7777
 
 HOME_PATH = os.path.split(os.path.realpath(__file__))[0]
 PAK_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Content/Paks/")
