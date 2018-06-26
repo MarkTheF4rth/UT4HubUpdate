@@ -30,10 +30,10 @@ __maintainer__ = "MII#0255"
 
 
 #TODO THESE MUST BE CHANGED TO THE SUITABLE VALUES
-PRIVCODE = "abcdefg"
-SERVER_TOKEN = "abcdefg"
-ALLOWED_RULES = "1,2,3,4"
-HIDE_DEFAULTS = True
+PRIVCODE = "abcef"
+SERVER_TOKEN = "abcef"
+ALLOWED_RULES = "1,2,3,4" # set to "" for default server rulesets
+HIDE_DEFAULTS = False
 REFERENCE_FILENAME = 'references.txt'
 PORT = 7777
 
@@ -128,11 +128,22 @@ def update_rulesets():
     """ a new ruleset file based on the info given above"""
     print('')
     CPRINT('Downloading rulesets', 'magenta')
+    url = 'http://utcc.unrealpugs.com/'
+    inp = [SERVER_TOKEN]
+    endpoint = 'server/{}/rulesets?'
+
+    if ALLOWED_RULES: # if there are any allowed rules, switch to individual ruleset endpoint
+        inp = [PRIVCODE, ALLOWED_RULES]
+        endpoint = 'rulesets/download?privateCode={}&rulesets={}&'
+
+    url_string = url+endpoint
+    
     if HIDE_DEFAULTS:
-        url_string = "http://utcc.unrealpugs.com/rulesets/download?privateCode={}&hideDefaults&rulesets={}"
-    else:
-        url_string = "http://utcc.unrealpugs.com/rulesets/download?privateCode={}&rulesets={}"
-    urllib.request.urlretrieve(url_string.format(PRIVCODE, ALLOWED_RULES), RULESET_PATH)
+        url_string += "hideDefaults"
+
+    CPRINT(url_string.format(*inp), 'green')
+    open(RULESET_PATH, 'a') # create file if it isn't already there
+    urllib.request.urlretrieve(url_string.format(*inp), RULESET_PATH)
     print('Ruleset downloaded to', CPRINT.wrap(RULESET_PATH, 'cyan'))
 
 
@@ -143,7 +154,7 @@ def download_references():
     print('')
     CPRINT('Downloading references', 'magenta')
     path = os.path.join(HOME_PATH, REFERENCE_FILENAME)
-    url_string = "https://utcc.unrealpugs.com/hub/{}/supersecretreferencesurl"
+    url_string = "https://utcc.unrealpugs.com/server/{}/supersecretreferencesurl"
     urllib.request.urlretrieve(url_string.format(SERVER_TOKEN), path)
 
     with open('references.txt', 'r') as reference_file:
