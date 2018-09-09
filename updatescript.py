@@ -4,41 +4,42 @@
 """A simple script to update UT4 hubs
 Options:
 (no options) : if PORT is not taken (hub isn't running) do all updates
--f           : run all updates, even if the hub is up
 -r           : only update rulesets
 -i           : only update ini's
 -p           : only update paks
 
-you may use any of these in combination with each other to produce the desired result"""
+you may use any of these in combination with each other to produce the desired result
+
+NOTE: IF YOU ARE USING THE ADMIN SCRIPT, YOU DO NOT NEED TO EDIT THIS ONE
+"""
 
 import os
-import sys
-import time 
+import sys                      # command-line args
 import hashlib                  # md5sum
 import re                       # parse references
 import urllib.request           # download
 import tempfile                 # ini rewriting
 import shutil
-import socket                   # check if server is running
 
 
 __author__ = "MII#0255"
 __credits__ = ["MII#0255", "skandalouz#1109", "Scoob#7073"]
 __license__ = "MIT"
-__version__ = "1.0.2"
+__version__ = "2.0.0"
 __maintainer__ = "MII#0255"
 
 
 #TODO THESE MUST BE CHANGED TO THE SUITABLE VALUES
-PRIVCODE = "abcef"
-SERVER_TOKEN = "abcef"
-HIDE_DEFAULTS = False
+PRIVCODE = "abcd"
+SERVER_TOKEN = "abcd"
+HIDE_DEFAULTS = True
 REFERENCE_FILENAME = 'references.txt'
+
 
 #Advanced Options
 PURGE_OLD = True # WARNING: set to false if you do not want unlisted paks deleted
-ALLOWED_RULES = "" # set for custom rulesets
-PORT = 7777
+ALLOWED_RULES = ''
+#ALLOWED_RULES = "4,5,6,7,8,9,10,11,12,13,16,17,18,20,21,52,43,22,23,24,26,27,28,61,41,32,31,29,47,101"
 
 HOME_PATH = os.path.split(os.path.realpath(__file__))[0]
 PAK_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Content/Paks/")
@@ -47,40 +48,35 @@ RULESET_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Saved/Confi
 
 class colprint:
     def __init__(self):
-        self.header = '\033[95m'
-        self.okblue = '\033[94m'
-        self.green = '\033[92m'
-        self.lightred = '\033[93m'
-        self.fail = '\033[91m'
-        self.endc = '\033[0m'
-        self.bold = '\033[1m'
-        self.underline = '\033[4m'
-        self.cyan = '\033[36m'
-        self.yellow = '\033[33m'
-        self.magenta = '\033[35m'
+        self.empty = ''
+        self.okblue = '\033[94m' # header
+        self.green = '\033[92m' # confirmation
+        self.lightred = '\033[93m' # warnings
+        self.cyan = '\033[36m' # locations
+        self.yellow = '\033[33m' # outdated content
+        self.magenta = '\033[35m' # action
+        self.fail = '\033[91m'    # critical failure
+        self.header = '\033[95m'  #   |
+        self.bold = '\033[1m'     #   |
+        self.underline = '\033[4m'#   |
 
-    def wrap(self, string, colour):
+        self.endc = '\033[0m' # applied to end of string
+
+    def wrap(self, string, colour='empty'):
         return (getattr(self, colour) + string + self.endc)
 
-    def __call__(self, string, colour):
+    def __call__(self, string, colour='empty'):
         print(self.wrap(string, colour))
 
 CPRINT = colprint()
 
 
-def main(args):
+def update_main(args):
     """runs the update, based on validation and user input"""
 
     output = validate()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('127.0.0.1',PORT))
 
-    if result == 0 and '-f' not in args:
-        CPRINT('server appears to be running, use the'
-                'argument -f if you would like to ignore this', 'lightred')
-        return
-
-    if not args or args == ['-f']: # update everything if theres no arguments or only -f
+    if not args: # update everything if theres no arguments
         CPRINT('No arguments specified, running full update', 'okblue')
         args = args + ['-r', '-i', '-p']
 
@@ -112,13 +108,31 @@ def main(args):
         update_rulesets()
 
 
-
-
 def validate():
     """checks file paths and makes sure the program is able to run"""
+    # checks file locations
     pak_check = os.path.exists(PAK_PATH)
     ini_check = os.path.isfile(INI_PATH)
     rules_check = os.path.isfile(RULESET_PATH)
+
+    # checks utcc credentials
+    passres = True
+    errorcode = urllib.error.HTTPError
+    try:
+        urllib.request.urlopen('http://utcc.unrealpugs.com/rulesets/download?privateCode={}'.format(PRIVCODE))
+    except errorcode:
+        CPRINT('PRIVCODE is incorrect, please fix this before using this script again', 'fail')
+        passres = False
+
+    try:
+        urllib.request.urlopen('https://utcc.unrealpugs.com/server/{}/supersecretreferencesurl'.format(SERVER_TOKEN))
+    except errorcode:
+        CPRINT('SERVER_TOKEN is incorrect, please fix this before using this script again', 'fail')
+        passres = False
+
+    if not passres:
+        sys.exit()
+
 
     return pak_check, ini_check, rules_check
 
@@ -127,7 +141,7 @@ def validate():
 
 def update_rulesets():
     """ a new ruleset file based on the info given above"""
-    print('')
+    CPRINT('')
     CPRINT('Downloading rulesets', 'magenta')
     url = 'http://utcc.unrealpugs.com/'
     inp = [SERVER_TOKEN]
@@ -145,27 +159,27 @@ def update_rulesets():
     CPRINT(url_string.format(*inp), 'green')
     open(RULESET_PATH, 'a') # create file if it isn't already there
     urllib.request.urlretrieve(url_string.format(*inp), RULESET_PATH)
-    print('Ruleset downloaded to', CPRINT.wrap(RULESET_PATH, 'cyan'))
+    CPRINT('Ruleset downloaded to', CPRINT.wrap(RULESET_PATH, 'cyan'))
 
 
 
 def download_references():
     """downloads the latest ini configuration to "list.txt" and extracts its contents
         NOTE: this will download to cwd"""
-    print('')
+    CPRINT('')
     CPRINT('Downloading references', 'magenta')
     path = os.path.join(HOME_PATH, REFERENCE_FILENAME)
     url_string = "https://utcc.unrealpugs.com/server/{}/supersecretreferencesurl"
     urllib.request.urlretrieve(url_string.format(SERVER_TOKEN), path)
 
     with open('references.txt', 'r') as reference_file:
-        print('References saved to ' + CPRINT.wrap(path, 'cyan'))
+        CPRINT('References saved to ' + CPRINT.wrap(path, 'cyan'))
         return reference_file.readlines()
     
 
 def find_paks():
     """returns a dictionary of name:(path, checksum) reading the current pak files"""
-    print('')
+    CPRINT('')
     CPRINT('Checking current pak files and their checksums (this may take '
             'a while)', 'magenta')
     file_list = [x for x in os.listdir(os.path.join(HOME_PATH, PAK_PATH)) if x.endswith('.pak')]
@@ -221,14 +235,13 @@ def download_new_paks(references):
             downloaded.append(name)
 
 
-    print('The following has been downloaded:')
-    print('\n'.join(['---' + CPRINT.wrap(x, 'lightred') for x in downloaded]))
+    CPRINT('The following has been downloaded:')
+    CPRINT('\n'.join(['---' + CPRINT.wrap(x, 'lightred') for x in downloaded]))
     if current_paks and PURGE_OLD: # remove old paks
-        print('')
-        print('cross reference completed, deleting old paks')
+        CPRINT('')
+        CPRINT('cross reference completed, deleting old paks')
         for redundant_pak_name, items in current_paks.items():
-            print('---deleting {}'.format(CPRINT.wrap(
-                redundant_pak_name, 'lightred')))
+            CPRINT('---deleting {}'.format(CPRINT.wrap(redundant_pak_name, 'lightred')))
             os.remove(items[0])
             
         
@@ -237,7 +250,7 @@ def download_new_paks(references):
 
 def extract_info(reference_list):
     """given a list of references, extract all the information given into a more digestable form"""
-    print('')
+    CPRINT('')
     CPRINT('Extracting reference information', 'magenta')
     return_list = []
 
@@ -255,7 +268,7 @@ def extract_info(reference_list):
 
 def overwrite_game_ini(references):
     """given a list of references, overwrites the current references in game.ini"""
-    print('')
+    CPRINT('')
     CPRINT('Rewriting game ini references', 'magenta')
 
     #Create temp file
@@ -276,4 +289,5 @@ def overwrite_game_ini(references):
     CPRINT('... Done', 'green')
 
 
-main(sys.argv[1:])
+if __name__ == "__main__":
+    update_main(sys.argv[1:])
