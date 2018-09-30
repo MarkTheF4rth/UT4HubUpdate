@@ -25,7 +25,7 @@ import shutil
 __author__ = "MII#0255"
 __credits__ = ["MII#0255", "skandalouz#1109", "Scoob#7073"]
 __license__ = "MIT"
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 __maintainer__ = "MII#0255"
 
 
@@ -41,7 +41,8 @@ BACKLOG_FILENAME = 'backlog.txt'      # history file to prevent paks from being 
 PURGE_OLD = True # WARNING: set to false if you do not want unlisted paks deleted
 ALLOWED_RULES = ''
 
-HOME_PATH = 'os.path.split(os.path.realpath(__file__))[0]'
+HOME_PATH = '/home/user/'
+FILE_PATH = os.path.split(os.path.realpath(__file__))[0]
 PAK_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Content/Paks/")
 INI_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Saved/Config/LinuxServer/Game.ini")
 RULESET_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Saved/Config/Rulesets/rulesets.json")
@@ -170,15 +171,16 @@ def download_references():
         NOTE: this will download to cwd"""
     CPRINT('')
     CPRINT('Downloading references', 'magenta')
-    path = os.path.join(HOME_PATH, REFERENCE_FILENAME)
+    path = os.path.join(FILE_PATH, REFERENCE_FILENAME)
     url_string = "https://utcc.unrealpugs.com/server/{}/supersecretreferencesurl"
     urllib.request.urlretrieve(url_string.format(SERVER_TOKEN), path)
 
     with open('references.txt', 'r') as reference_file:
         CPRINT('References saved to ' + CPRINT.wrap(path, 'cyan'))
         return reference_file.readlines()
+
     
-def xfind_paks():
+def find_paks():
     """returns a dictionary of name:(path, checksum) reading the current pak files
     cross references against current references to see which paks don't need to be updated"""
     CPRINT('')
@@ -190,7 +192,7 @@ def xfind_paks():
 
     edit_times = {x : [os.path.getmtime(os.path.join(PAK_PATH, x))] for x in file_list}
 
-    with open(BACKLOG_FILENAME, 'r') as backlog:
+    with open(os.path.join(FILE_PATH, BACKLOG_FILENAME), 'r') as backlog:
         for pak in backlog.readlines():
             pak = pak.split()
             if pak[0] in edit_times and edit_times[pak[0]][0] == float(pak[1]):
@@ -221,27 +223,6 @@ def xfind_paks():
     return info
 
 
-def find_paks(file_list):
-    """returns a dictionary of name:(path, checksum) reading the current pak files"""
-    CPRINT('')
-    CPRINT('Checking current pak files and their checksums (this may take '
-            'a while)', 'magenta')
-    file_list = [x for x in os.listdir(os.path.join(HOME_PATH, PAK_PATH)) if x.endswith('.pak')]
-    file_list.remove('UnrealTournament-LinuxServer.pak') # don't mess with the main pak
-    info = {}
-
-    for file_name in file_list:
-        file_path = os.path.join(PAK_PATH, file_name)
-        with open(file_path, 'rb') as pakfile:
-            md5 = hashlib.md5(pakfile.read()).hexdigest()
-
-        info.update({file_name:(file_path, md5)})
-
-    CPRINT('... Done', 'green')
-
-    return info
-
-    
 def download_new_paks(references):
     """given a list of references, cross-references with paks for matches 
         and then does the following things:
