@@ -25,7 +25,7 @@ import shutil
 __author__ = "MII#0255"
 __credits__ = ["MII#0255", "skandalouz#1109", "Scoob#7073"]
 __license__ = "MIT"
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __maintainer__ = "MII#0255"
 
 
@@ -33,18 +33,20 @@ __maintainer__ = "MII#0255"
 PRIVCODE = "abcd"
 SERVER_TOKEN = "abcd"
 HIDE_DEFAULTS = True
-REFERENCE_FILENAME = 'references.txt'
+REFERENCE_FILENAME = 'references.txt' # references section of game ini
+BACKLOG_FILENAME = 'backlog.txt'      # history file to prevent paks from being constantly re-assessed
 
 
 #Advanced Options
 PURGE_OLD = True # WARNING: set to false if you do not want unlisted paks deleted
 ALLOWED_RULES = ''
-#ALLOWED_RULES = "4,5,6,7,8,9,10,11,12,13,16,17,18,20,21,52,43,22,23,24,26,27,28,61,41,32,31,29,47,101"
 
-HOME_PATH = os.path.split(os.path.realpath(__file__))[0]
+HOME_PATH = 'os.path.split(os.path.realpath(__file__))[0]'
 PAK_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Content/Paks/")
 INI_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Saved/Config/LinuxServer/Game.ini")
 RULESET_PATH = os.path.join(HOME_PATH, "LinuxServer/UnrealTournament/Saved/Config/Rulesets/rulesets.json")
+
+open(BACKLOG_FILENAME, 'a').close() # create backlog txt file
 
 class colprint:
     def __init__(self):
@@ -176,8 +178,50 @@ def download_references():
         CPRINT('References saved to ' + CPRINT.wrap(path, 'cyan'))
         return reference_file.readlines()
     
+def xfind_paks():
+    """returns a dictionary of name:(path, checksum) reading the current pak files
+    cross references against current references to see which paks don't need to be updated"""
+    CPRINT('')
+    CPRINT('Checking current pak files and their checksums (this may take '
+            'a while)', 'magenta')
+    file_list = [x for x in os.listdir(PAK_PATH) if x.endswith('.pak')]
+    file_list.remove('UnrealTournament-LinuxServer.pak') # don't mess with the main pak
+    info = {}
 
-def find_paks():
+    edit_times = {x : [os.path.getmtime(os.path.join(PAK_PATH, x))] for x in file_list}
+
+    with open(BACKLOG_FILENAME, 'r') as backlog:
+        for pak in backlog.readlines():
+            pak = pak.split()
+            if pak[0] in edit_times and edit_times[pak[0]][0] == float(pak[1]):
+                file_list.remove(pak[0])
+                info.update({pak[0]:(os.path.join(PAK_PATH, pak[0]), pak[2])})
+                edit_times[pak[0]].append(pak[2])
+
+        backlog.close()
+
+    for file_name in file_list:
+        file_path = os.path.join(PAK_PATH, file_name)
+        with open(file_path, 'rb') as pakfile:
+            md5 = hashlib.md5(pakfile.read()).hexdigest()
+
+            edit_times[file_name].append(md5)
+            info.update({file_name:(file_path, md5)})
+
+
+    with open(BACKLOG_FILENAME, 'w') as backlog:
+        for pak_name, pak_info in edit_times.items():
+            line = pak_name + ' ' + str(pak_info[0]) + ' ' + pak_info[1] + '\n'
+            backlog.write(line)
+
+        backlog.close()
+
+    CPRINT('... Done', 'green')
+
+    return info
+
+
+def find_paks(file_list):
     """returns a dictionary of name:(path, checksum) reading the current pak files"""
     CPRINT('')
     CPRINT('Checking current pak files and their checksums (this may take '
