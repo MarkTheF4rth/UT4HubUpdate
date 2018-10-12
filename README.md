@@ -1,7 +1,11 @@
 \_\_author\_\_ = "MII#0255"
+
 \_\_credits\_\_ = ["MII#0255", "skandalouz#1109", "Scoob#7073"]
+
 \_\_license\_\_ = "MIT"
+
 \_\_version\_\_ = "3.0.1"
+
 \_\_mainainer\_\_ = "MII#0255"
 
 This project deals with updating a UT4 hub connected to UTCC, note that it is unusable without a utcc account set up
