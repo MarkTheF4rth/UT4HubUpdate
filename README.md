@@ -4,7 +4,7 @@
 
 \_\_license\_\_ = "MIT"
 
-\_\_version\_\_ = "3.0.1"
+\_\_version\_\_ = "3.1.0"
 
 \_\_mainainer\_\_ = "MII#0255"
 

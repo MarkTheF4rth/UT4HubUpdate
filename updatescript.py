@@ -161,9 +161,9 @@ class Update:
         self.uprint('')
         self.uprint('Downloading references', 'magenta')
         url_string = "https://utcc.unrealpugs.com/server/{}/supersecretreferencesurl"
-        urllib.request.urlretrieve(url_string.format(self.config['server_token']), self.ini_path)
+        urllib.request.urlretrieve(url_string.format(self.config['server_token']), self.config['references'])
     
-        with open(self.rules_path, 'r') as reference_file:
+        with open(self.config['references'], 'r') as reference_file:
             self.uprint('References saved to ' + self.uprint.wrap(self.rules_path, 'cyan'))
             return reference_file.readlines()
     
@@ -275,6 +275,7 @@ class Update:
                 # failed regex
                 continue
             reference_extract[0] = reference_extract[0]+'.pak'
+            return_list.append(reference_extract)
     
         self.uprint('... Done', 'green')
     
