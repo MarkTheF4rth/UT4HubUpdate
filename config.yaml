@@ -3,17 +3,19 @@
 # THESE VALUES MUST BE ADDRESSED
 private_code  : ""
 server_token  : ""
+
 hide_defaults : true
-delete_old    : false
+delete_old    : true
 
 
 
 # FILE PATHS
 server_loc  : "/home/unrealpugs/LinuxServer"
 
-log_path    : "Data/update_log.log"
-cache_path  : "Data/cache.txt"
-references  : "Data/references.txt"
+data_path   : "__default__"
+log_path    : "update_log.log"
+cache_path  : "cache.txt"
+references  : "references.txt"
 
 pak_dir_ext : "UnrealTournament/Content/Paks/"
 ini_ext     : "UnrealTournament/Saved/Config/LinuxServer/Game.ini"
@@ -21,6 +23,8 @@ ruleset_ext : "UnrealTournament/Saved/Config/Rulesets/rulesets.json"
 
 
 # ADVANCED OPTIONS
+allowed_rulesets : ""
+
+# AUTOMATION OPTIONS
 start_command    : "/home/unrealpugs/startscript.sh"
 ut_process_name  : "UE4Server-Linux-Shipping"
-allowed_rulesets : ""

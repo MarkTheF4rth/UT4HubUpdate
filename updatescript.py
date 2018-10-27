@@ -10,8 +10,15 @@ Options:
 
 you may use any of these in combination with each other to produce the desired result
 
-NOTE: if you use the admin script, you do not need to pay attention to this one
+NOTE: if you use the automation script, you do not need to pay attention to this one
 """
+
+__author__ = "MII#0255"
+__credits__ = ["MII#0255", "skandalouz#1109", "Scoob#7073"]
+__license__ = "MIT"
+__version__ = "3.2.0"
+__mainainer__ = "MII#0255"
+
 
 import os
 import sys                      # command-line args
@@ -51,6 +58,7 @@ class Update:
         file_path = os.path.dirname(os.path.realpath(__file__))
         raw_config = open(os.path.join(file_path, "config.yaml"))
         self.config = yaml.load(raw_config)
+        
 
         #set paths
         base = self.config['server_loc']
@@ -58,12 +66,10 @@ class Update:
         self.ini_path = os.path.join(base, self.config['ini_ext'])
         self.rules_path = os.path.join(base, self.config['ruleset_ext'])
 
-        self.config['log_path'] = os.path.join(file_path, self.config['log_path'])
-        self.config['cache_path'] = os.path.join(file_path, self.config['cache_path'])
-        self.config['references'] = os.path.join(file_path, self.config['references'])
+        #initialise data
+        self.init_data(file_path)
 
-        #initialise cache
-        open(self.config['cache_path'], 'a').close()
+
 
     def update_main(self, args):
         """runs the update, based on validation and user input"""
@@ -99,6 +105,31 @@ class Update:
                 self.uprint('Saving ruleset under new file:{}'.format(self.uprint.wrap(self.rules_path, 'orange')))
     
             self.update_rulesets()
+
+    def init_data(self, file_path):
+        """Initialises data dir and creates data file paths"""
+
+        # __default__ will make the data dir generate in the script dir
+        if self.config['data_path'] == "__default__":
+            self.config['data_path'] = os.path.join(file_path, "Data")
+        else:
+            self.config['data_path'] = os.path.join(self.config['data_path'], "Data")
+
+        if not os.path.exists(self.config['data_path']):
+            # assume data dir hasn't been generated in this case
+            try:
+                os.mkdir(self.config['data_path'])
+            except FileNotFoundError:
+                # assume user provided invalid path, critical error
+                self.uprint('data path given is invalid, please make sure this points to a valid directory', 'fail')
+                sys.exit()
+
+        self.config['log_path'] = os.path.join(self.config['data_path'], self.config['log_path'])
+        self.config['cache_path'] = os.path.join(self.config['data_path'], self.config['cache_path'])
+        self.config['references'] = os.path.join(self.config['data_path'], self.config['references'])
+        
+        #initialise cache
+        open(self.config['cache_path'], 'a').close()
     
     
     def validate(self):
