@@ -19,6 +19,12 @@ NOTES:
     please leave the update script in the same folder as this file
 """
 
+__author__ = "MII#0255"
+__credits__ = ["MII#0255", "skandalouz#1109"]
+__license__ = "MIT"
+__version__ = "3.2.0"
+__mainainer__ = "MII#0255"
+
 import os           # runs user-given command
 import sys          # command line args
 import psutil       # manages processes
@@ -60,7 +66,7 @@ class logprint():
 
 
 class Admin(Update):
-   def admin_main(self, args):
+   def automation_main(self, args):
        """main function, makes suitable changes"""
        self.uprint.initialise(self.config['log_path'])
    
@@ -102,5 +108,5 @@ class Admin(Update):
 
 if __name__ == "__main__":
     lprint = logprint()
-    admin_update = Admin(lprint)
-    admin_update.admin_main(sys.argv[1:])
+    automation_update = Admin(lprint)
+    automation_update.automation_main(sys.argv[1:])
