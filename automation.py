@@ -80,8 +80,13 @@ class Admin(Update):
    
        remaining_args = list(set(['-r', '-i', '-p']).intersection(set(args)))
        self.update_main(remaining_args)
-   
-       os.system(self.config['start_command'])
+
+       os.chdir(os.path.join(self.config['server_loc'],'Engine/Binaries/Linux/'))
+       start_cm = self.config['startscript_loc']
+       if self.config['lobby_pw']:
+           start_cm = start_cm + ' -p '+self.config['lobby_pw']
+
+       os.system(start_cm)
    
    
    def hub_check(self):

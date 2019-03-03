@@ -1,8 +1,8 @@
 # Config file for using the update script
 
 # THESE VALUES MUST BE ADDRESSED
-private_code  : ""
-server_token  : ""
+private_code  : "28pT34hJdIppodtKd97K9MwNqn0AjBdt"
+server_token  : "QIKzedUbeVquGjofcyjQ7VQiO7sB2TDZ"
 
 hide_defaults : true
 delete_old    : true
@@ -26,5 +26,6 @@ ruleset_ext : "UnrealTournament/Saved/Config/Rulesets/rulesets.json"
 allowed_rulesets : ""
 
 # AUTOMATION OPTIONS
-start_command    : "/home/unrealpugs/startscript.sh"
+lobby_pw    : ""
+startscript_loc : "/home/unrealpugs/UT4hubupdate/startscript.sh"
 ut_process_name  : "UE4Server-Linux-Shipping"
