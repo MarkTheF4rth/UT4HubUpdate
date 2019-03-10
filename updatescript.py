@@ -58,9 +58,10 @@ class Update:
         file_path = os.path.dirname(os.path.realpath(__file__))
         raw_config = open(os.path.join(file_path, "config.yaml"))
         self.config = yaml.load(raw_config)
-        
 
         #set paths
+        self.local_ini_path = os.path.join(file_path, self.config['game_ini'])
+
         base = self.config['server_loc']
         self.pak_dir = os.path.join(base, self.config['pak_dir_ext'])
         self.ini_path = os.path.join(base, self.config['ini_ext'])
@@ -80,7 +81,7 @@ class Update:
             self.uprint('No arguments specified, running full update', 'okblue')
             args = args + ['-r', '-i', '-p']
     
-        references = self.download_references() # always get latest references
+        references = self.remove_dupes(self.get_references()) # always get latest references
     
         if '-p' in args:
             if output[0]:
@@ -102,7 +103,7 @@ class Update:
     
         if '-r' in args: # update rulesets
             if not output[2]:
-                self.uprint('Saving ruleset under new file:{}'.format(self.uprint.wrap(self.rules_path, 'orange')))
+                self.uprint('Saving ruleset under new file:{}'.format(self.uprint.wrap(self.rules_path, 'magenta')))
     
             self.update_rulesets()
 
@@ -185,18 +186,44 @@ class Update:
         self.uprint('Ruleset downloaded to: ' + self.uprint.wrap(self.rules_path, 'cyan'), 'green')
     
     
-    
-    def download_references(self):
+    def get_references(self):
         """downloads the latest ini configuration to "list.txt" and extracts its contents
+            then after removing omitted entries, merges with  local ini
             NOTE: this will download to cwd"""
         self.uprint('')
         self.uprint('Downloading references', 'magenta')
         url_string = "https://utcc.unrealpugs.com/server/{}/supersecretreferencesurl"
         urllib.request.urlretrieve(url_string.format(self.config['server_token']), self.config['references'])
+        self.uprint('References saved to ' + self.uprint.wrap(self.config['references'], 'cyan'))
     
-        with open(self.config['references'], 'r') as reference_file:
-            self.uprint('References saved to ' + self.uprint.wrap(self.rules_path, 'cyan'))
-            return reference_file.readlines()
+        utcc_references = open(self.config['references'], 'r').readlines()
+        local_references = open(self.local_ini_path, 'r').readlines()
+
+        # Delete any utcc game ini lines with specified keywords
+        omit = self.config['game_ini_omit']
+        for line in utcc_references:
+            if omit and any([x in line for x in omit.split(',')]):
+                utcc_references.remove(line)
+
+        # The first map found when parsing paks will be kept
+        if self.config['game_ini_priority'] == "utcc":
+            return utcc_references + local_references
+        return local_references + utcc_references
+
+    def remove_dupes(self, references):
+        """goes through references and removes any map names that come up twice"""
+        self.uprint('Removing duplicate references', 'magenta')
+        name_list = []
+
+        for reference in references:
+            cut = reference[33:]
+            pak_name = cut[:cut.index('"')] # assume every pak begins with RedirectReferences=(PackageName="
+            if pak_name in name_list:
+                references.remove(reference)
+            else:
+                name_list.append(pak_name)
+
+        return references
     
         
     def find_paks(self):
