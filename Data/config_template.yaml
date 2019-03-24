@@ -4,8 +4,9 @@
 private_code  : ""
 server_token  : ""
 
+
 hide_defaults : true
-delete_old    : true
+delete_old    : false
 
 
 
@@ -23,7 +24,7 @@ ini_ext     : "UnrealTournament/Saved/Config/LinuxServer/Game.ini"
 ruleset_ext : "UnrealTournament/Saved/Config/Rulesets/rulesets.json"
 
 # LOCAL CONFIG OPTIONS
-game_ini_omit : '' 
+game_ini_omit : ''
 game_ini_priority : 'local'
 #game_ini_priority : 'utcc'
 
@@ -35,3 +36,4 @@ allowed_rulesets : ""
 lobby_pw    : ""
 startscript_loc : "/home/unrealpugs/UT4hubupdate/startscript.sh"
 ut_process_name  : "UE4Server-Linux-Shipping"
+
