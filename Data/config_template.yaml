@@ -8,7 +8,7 @@ server_token  : ""
 hide_defaults : true
 delete_old    : false
 
-
+first_run     : true
 
 # FILE PATHS
 server_loc  : "/home/unrealpugs/LinuxServer"

@@ -56,7 +56,11 @@ class Update:
     def __init__(self, uprint):
         self.uprint = uprint # modified print
         file_path = os.path.dirname(os.path.realpath(__file__))
-        raw_config = open(os.path.join(file_path, "config.yaml"))
+        self.config_path = os.path.join(file_path, "config.yaml")
+        if not os.path.exists(self.config_path):
+            self.uprint('config.yaml file not found, Template can be located in the Data directory', 'fail')
+            sys.exit()
+        raw_config = open(self.config_path)
         self.config = yaml.load(raw_config)
 
         #set paths
@@ -82,6 +86,9 @@ class Update:
             args = args + ['-r', '-i', '-p']
     
         references = self.remove_dupes(self.get_references()) # always get latest references
+
+        if self.config['first_run']:
+            self.first_run()
     
         if '-p' in args:
             if output[0]:
@@ -106,6 +113,27 @@ class Update:
                 self.uprint('Saving ruleset under new file:{}'.format(self.uprint.wrap(self.rules_path, 'magenta')))
     
             self.update_rulesets()
+
+    def first_run(self):
+        """Preserves game_ini contents, changes first run to false"""
+
+        with open(self.local_ini_path, 'a') as local_ini:
+            with open(self.ini_path, 'r') as ini_file:
+                for line in ini_file:
+                    if line.startswith("RedirectReferences="):
+                        local_ini.write(line)
+        local_ini.close()
+
+        temp_config = open(self.config_path, 'r').readlines()
+        with open(self.config_path, 'w') as new_config:
+            for line in temp_config:
+                if line.startswith('first_run'):
+                    line = line.replace('true', 'false')
+                new_config.write(line)
+
+
+
+
 
     def init_data(self, file_path):
         """Initialises data dir and creates data file paths"""
@@ -363,8 +391,7 @@ class Update:
             shutil.move(abs_path, self.ini_path)
     
         self.uprint('... Done', 'green')
-    
-    
+
     
 if __name__ == "__main__":
     cprint = colprint()
