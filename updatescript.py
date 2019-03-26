@@ -374,21 +374,22 @@ class Update:
         """given a list of references, overwrites the current references in game.ini"""
         self.uprint('')
         self.uprint('Rewriting game ini references', 'magenta')
-    
-        #Create temp file
-        fh, abs_path = tempfile.mkstemp()
-        with os.fdopen(fh,'w') as new_file:
-            with open(self.ini_path) as old_file:
-                for line in old_file:
-                    if not line.startswith("RedirectReferences=("):
-                        new_file.write(line)
-    
-            for reference in references:
-                new_file.write(reference)
-            #Remove original file
-            os.remove(self.ini_path)
-            #Move new file
-            shutil.move(abs_path, self.ini_path)
+        redirects_flag = True
+        new_ini_lines = []
+
+        with open(self.ini_path, 'r') as current_ini:
+            for line in current_ini:
+                if not line.startswith("RedirectReferences=("):
+                    new_ini_lines.append(line)
+                elif redirects_flag:
+                    new_ini_lines += references
+                    redirects_flag = False
+            if redirects_flag:
+                new_ini_lines += references
+            current_ini.close()
+
+        with open(self.ini_path, 'w') as new_ini:
+            new_ini.writelines(new_ini_lines)
     
         self.uprint('... Done', 'green')
 
