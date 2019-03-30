@@ -79,7 +79,9 @@ class Admin(Update):
        self.hub_stop()
    
        remaining_args = list(set(['-r', '-i', '-p']).intersection(set(args)))
-       self.update_main(remaining_args)
+       res = self.update_main(remaining_args)
+       if not res:
+           self.uprint("update failed, restarting server anyway")
 
        os.chdir(os.path.join(self.config['server_loc'],'Engine/Binaries/Linux/'))
        start_cm = self.config['startscript_loc']

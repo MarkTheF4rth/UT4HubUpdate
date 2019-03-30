@@ -25,8 +25,6 @@ import sys                      # command-line args
 import hashlib                  # md5sum
 import re                       # parse references
 import urllib.request           # download
-import tempfile                 # ini rewriting
-import shutil
 import yaml                     # configs
 
 
@@ -80,6 +78,8 @@ class Update:
         """runs the update, based on validation and user input"""
     
         output = self.validate()
+        if not output:
+            return False
     
         if not args: # update everything if theres no arguments
             self.uprint('No arguments specified, running full update', 'okblue')
@@ -113,6 +113,7 @@ class Update:
                 self.uprint('Saving ruleset under new file:{}'.format(self.uprint.wrap(self.rules_path, 'magenta')))
     
             self.update_rulesets()
+        return True
 
     def first_run(self):
         """Preserves game_ini contents, changes first run to false"""
@@ -184,7 +185,7 @@ class Update:
             passres = False
     
         if not passres:
-            sys.exit()
+            return False
     
     
         return pak_check, ini_check, rules_check

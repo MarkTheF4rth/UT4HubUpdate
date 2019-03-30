@@ -1,4 +1,4 @@
-Version: 3.4.0
+Version: 3.4.2
 
 This project deals with updating a UT4 hub connected to UTCC, note that it is unusable without a utcc account set up
 
