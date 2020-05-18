@@ -2,7 +2,9 @@ Version: 3.4.2
 
 This project deals with updating a UT4 hub connected to UTCC, note that it is unusable without a utcc account set up
 
-there are 2 scripts in this project, "automation" and "updatescript"
+Using this script assumes you understand the logistics of a UT4 hub, if you don't... you're probably reading this as part of my portfolio
+
+There are 2 scripts in this project, "automation" and "updatescript"
 - updatescript : this is the main script for updating the hub
 - automation : this script is meant for linux crontab automation processes concerning this script
                  it may not run smoothly on windows systems
